@@ -4,7 +4,7 @@
   "description": "cummanity tool for get and found item in any campus",
   "main": "app.js",
   "scripts": {
-    "start": " nodemon ./src/index.js"
+    "start": " node ./src/index.js"
   },
   "type": "module",
   "keywords": [
