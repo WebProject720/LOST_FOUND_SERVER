@@ -10,7 +10,8 @@ import bcrypt from "bcrypt";
 const Option = {
     HttpOnly: true,
     secure: true,// Automatic insert Cookies into header by API testers
-    maxAge: 3600000
+    maxAge: 3600000,
+    sameSite: 'None'
 }
 
 
@@ -156,7 +157,8 @@ const login = asyncHandler(async (req, res) => {
         .cookie("AccessToken", AccessToken, Option)
         .cookie("RefreshToken", RefreshToken, Option)
         .json(
-            new ApiResponse(200, { "user": userInfo[0], "Tokens": [{ AccessToken: AccessToken }, { RefreshToken: RefreshToken }] }, "User Login Successfully")
+            new ApiResponse(200, { "user": userInfo[0] }, "User Login Successfully")
+            // new ApiResponse(200, { "user": userInfo[0], "Tokens": [{ AccessToken: AccessToken }, { RefreshToken: RefreshToken }] }, "User Login Successfully")
         )
 })
 
@@ -238,8 +240,8 @@ const UserInfo = asyncHandler(async (req, res) => {
                             }
                         },
                         {
-                            $sort:{
-                                createdAt:-1
+                            $sort: {
+                                createdAt: -1
                             }
                         }
                     ]
@@ -247,7 +249,8 @@ const UserInfo = asyncHandler(async (req, res) => {
             },
             {
                 $project: {
-                    password: 0
+                    password: 0,
+                    refreshToken:0
                 }
             }
         ]
