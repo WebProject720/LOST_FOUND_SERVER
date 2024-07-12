@@ -15,6 +15,59 @@ const Option = {
 }
 
 
+const getUser = async (email) => {
+    const UserInfo = await user.aggregate(
+        [
+            {
+                $match: {
+                    email: email
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $lookup: {
+                    from: "mails",
+                    localField: "sendMails",
+                    foreignField: "_id",
+                    as: "sendMails",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "owner",
+                                foreignField: "_id",
+                                as: "owner",
+                                pipeline: [
+                                    {
+                                        $project: {
+                                            password: 0
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $sort: {
+                                createdAt: -1
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    password: 0,
+                    refreshToken: 0
+                }
+            }
+        ]
+    );
+    return UserInfo;
+}
 
 const GetTokens = async (userID) => {
     try {
@@ -41,7 +94,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // upload in DB
     // send response to user without secret
 
-    const { email, password } = req.body;
+    const { email, password, picture = "", name = "" } = req.body;
 
     if (Object.keys(req.body).length <= 0) {
         return res.json(new ApiError(400, "All input are fields required"));
@@ -60,7 +113,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
     const NewUser = await user.create({
-        email, password
+        email, password, profileImage: picture, name, username: name
     })
     const CreatedUser = await (user.findById(NewUser._id)).select("email _id");
 
@@ -129,26 +182,7 @@ const login = asyncHandler(async (req, res) => {
         return res.json(new ApiError(409, "Invalid Cretential"));
     }
     const { AccessToken, RefreshToken } = await GetTokens(ExitUser._id);
-    const userInfo = await user.aggregate((
-        [
-            {
-                $match: {
-                    _id: ExitUser._id
-                }
-            },
-            {
-                $unset: ["password", "refreshToken"]
-            },
-            {
-                $lookup: {
-                    from: "mails",
-                    localField: "sendMails",
-                    foreignField: "_id",
-                    as: "sendMails",
-                }
-            }
-        ]
-    ));
+    const userInfo = await getUser(email);
     if (!userInfo) {
         return res.json(new ApiError(500, "Internal Error "));
     }
@@ -157,13 +191,38 @@ const login = asyncHandler(async (req, res) => {
         .cookie("AccessToken", AccessToken, Option)
         .cookie("RefreshToken", RefreshToken, Option)
         .json(
-            new ApiResponse(200, { "user": userInfo[0] }, "User Login Successfully")
+            new ApiResponse(200, { "user": userInfo }, "User Login Successfully")
             // new ApiResponse(200, { "user": userInfo[0], "Tokens": [{ AccessToken: AccessToken }, { RefreshToken: RefreshToken }] }, "User Login Successfully")
         )
 })
 
-const GoogleAuth=asyncHandler(async(req,res)=>{
-    const {name,email,profileImage}=req.body;
+const GoogleAuth = asyncHandler(async (req, res) => {
+    const { name, email, picture, verified_email, id, given_name, family_name } = req.body;
+    const UserAlreadyExit = await user.findOne({ email });
+    console.log(UserAlreadyExit);
+    if (UserAlreadyExit) return (await getUser(email));
+
+    //Register User
+    const NewUser = await user.create({
+        email, password: 'googlePass', name, isEmailVerified: verified_email, username: name, profileImage: picture
+    });
+    console.log(NewUser);
+    if (!NewUser) {
+        return res.status(500).json(new ApiError(500, "User not Created"));
+    }
+    const { AccessToken, RefreshToken } = await GetTokens(NewUser._id);
+    const userInfo = await getUser(email);
+    if (!userInfo) {
+        return res.json(new ApiError(500, "Internal Error "));
+    }
+    return res
+        .status(200)
+        .cookie("AccessToken", AccessToken, Option)
+        .cookie("RefreshToken", RefreshToken, Option)
+        .json(
+            new ApiResponse(200, { "user": userInfo }, "User Login Successfully")
+            // new ApiResponse(200, { "user": userInfo[0], "Tokens": [{ AccessToken: AccessToken }, { RefreshToken: RefreshToken }] }, "User Login Successfully")
+        )
 })
 
 const logout = asyncHandler(async (req, res) => {
@@ -209,56 +268,7 @@ const UserInfo = asyncHandler(async (req, res) => {
         return res.json(new ApiError(404, "User not found"))
     }
     //Aggregiation pipeline
-    const UserInfo = await user.aggregate(
-        [
-            {
-                $match: {
-                    email: email
-                }
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
-            },
-            {
-                $lookup: {
-                    from: "mails",
-                    localField: "sendMails",
-                    foreignField: "_id",
-                    as: "sendMails",
-                    pipeline: [
-                        {
-                            $lookup: {
-                                from: "users",
-                                localField: "owner",
-                                foreignField: "_id",
-                                as: "owner",
-                                pipeline: [
-                                    {
-                                        $project: {
-                                            password: 0
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            $sort: {
-                                createdAt: -1
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                $project: {
-                    password: 0,
-                    refreshToken:0
-                }
-            }
-        ]
-    )
+    const UserInfo = await getUser(email);
     return res.status(200)
         .json(
             new ApiResponse(200, UserInfo, "User information")
@@ -266,4 +276,4 @@ const UserInfo = asyncHandler(async (req, res) => {
 
 });
 
-export { UserInfo, registerUser, UserImage, DeleteUser, login, logout, GetTokens, ForgetPassword }
+export { GoogleAuth, UserInfo, registerUser, UserImage, DeleteUser, login, logout, GetTokens, ForgetPassword }
