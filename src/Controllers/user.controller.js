@@ -162,6 +162,10 @@ const login = asyncHandler(async (req, res) => {
         )
 })
 
+const GoogleAuth=asyncHandler(async(req,res)=>{
+    const {name,email,profileImage}=req.body;
+})
+
 const logout = asyncHandler(async (req, res) => {
     const Response = await user.findOneAndUpdate(req.body.user._id, {
         $unset: {

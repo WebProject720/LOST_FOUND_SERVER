@@ -10,6 +10,23 @@ const object = {
         unique: true,
         lowercase: true
     },
+    name: {
+        type: String,
+        required: false,
+    },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    OTP: {
+        type: Number,
+        required: false,
+        default: null
+    },
+    username: {
+        type: String,
+        required: false
+    },
     password: {
         type: String,
         required: true,
@@ -29,7 +46,7 @@ const object = {
         type: String,
         required: false,
         unique: false,
-        default:''
+        default: ''
     },
 
 };
