@@ -16,6 +16,13 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"));
 app.use(cookieParser());
 
+const corsOptions = {
+    origin: '*', // Specify the allowed origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
+    allowedHeaders: 'Content-Type,Authorization', // Allowed headers
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    optionsSuccessStatus: 204 // Response status for successful OPTIONS requests
+};
 const whiteList = ['http://localhost:5173'];
 const CorsOption = {
     origin: (origin, callback) => {
@@ -27,7 +34,7 @@ const CorsOption = {
     },
     credentials:true
 }
-app.use(cors(CorsOption));
+app.use(cors(corsOptions));
 
 import userRouter from './Routes/users.routes.js';
 app.use("/api/v1/users", userRouter);
@@ -38,5 +45,6 @@ app.use('/api/v1/mails', MailsRoute);
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, 'NotFound.html'));
 });
+
 
 export default app;

@@ -1,4 +1,5 @@
 export const collection = {
     mails: "mails",
-    users: "users"
+    users: "users",
+    otp:"OTP"
 }

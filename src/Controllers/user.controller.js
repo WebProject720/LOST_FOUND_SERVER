@@ -4,14 +4,16 @@ import { ApiResponse } from "../utiles/ApiResponse.js";
 import { user } from "../Models/user.model.js";
 import { UploadFile } from "../utiles/cloudnary.js"
 import { mails } from "../Models/mail.model.js";
+import { sendOTP, UpdateUserOTP } from "../utiles/sendMail.js";
 import bcrypt from "bcrypt";
+import { OtpModel } from "../Models/user.OTP.js";
 
 
 const Option = {
     HttpOnly: true,
     secure: true,// Automatic insert Cookies into header by API testers
     maxAge: 3600000,
-    sameSite: 'None'
+    // sameSite: 'None'
 }
 
 
@@ -66,7 +68,7 @@ const getUser = async (email) => {
             }
         ]
     );
-    return UserInfo;
+    return UserInfo[0];
 }
 
 const GetTokens = async (userID) => {
@@ -94,7 +96,7 @@ const registerUser = asyncHandler(async (req, res) => {
     // upload in DB
     // send response to user without secret
 
-    const { email, password, picture = "", name = "" } = req.body;
+    const { email, password, picture = "", name = "", OTP = "" } = req.body;
 
     if (Object.keys(req.body).length <= 0) {
         return res.json(new ApiError(400, "All input are fields required"));
@@ -111,12 +113,17 @@ const registerUser = asyncHandler(async (req, res) => {
         return res.json(new ApiError(409, "User already exits", "ERROR"));
     }
 
-
+    const OtpDoc = await OtpModel.findOne({ email });
+    if ((OTP) != OtpDoc?.OTP) {
+        return res.status(404).json(
+            new ApiError(400, "OTP are invalid !!")
+        )
+    }
     const NewUser = await user.create({
-        email, password, profileImage: picture, name, username: name
+        email, password, profileImage: picture, name, username: name, isEmailVerified: true
     })
     const CreatedUser = await (user.findById(NewUser._id)).select("email _id");
-
+    await OtpDoc.deleteOne({email});
     if (!CreatedUser) {
         return res.json(new ApiError(500, "Please try again"));
     }
@@ -199,14 +206,23 @@ const login = asyncHandler(async (req, res) => {
 const GoogleAuth = asyncHandler(async (req, res) => {
     const { name, email, picture, verified_email, id, given_name, family_name } = req.body;
     const UserAlreadyExit = await user.findOne({ email });
-    console.log(UserAlreadyExit);
-    if (UserAlreadyExit) return (await getUser(email));
+    if (UserAlreadyExit) {
+        const { AccessToken, RefreshToken } = await GetTokens(UserAlreadyExit._id);
+        const user = (await getUser(email));
+        return res
+            .status(200)
+            .cookie("AccessToken", AccessToken, Option)
+            .cookie("RefreshToken", RefreshToken, Option)
+            .json(
+                new ApiResponse(200, { "user": user }, "User Login Successfully")
+                // new ApiResponse(200, { "user": userInfo[0], "Tokens": [{ AccessToken: AccessToken }, { RefreshToken: RefreshToken }] }, "User Login Successfully")
+            )
+    };
 
     //Register User
     const NewUser = await user.create({
         email, password: 'googlePass', name, isEmailVerified: verified_email, username: name, profileImage: picture
     });
-    console.log(NewUser);
     if (!NewUser) {
         return res.status(500).json(new ApiError(500, "User not Created"));
     }
@@ -245,17 +261,24 @@ const logout = asyncHandler(async (req, res) => {
 })
 
 const ForgetPassword = asyncHandler(async (req, res) => {
-    const email = req.body?.email;
-    const NewPassword = req.body?.NewPassword;
+    const { OTP, email, NewPassword } = req.body;
+    if (!email && !OTP && !NewPassword) {
+        return res.json(new ApiError(404, "OTP NewPassword email are required"));
+    }
     const UserFind = await user.findOne({ 'email': email });
     if (!UserFind) {
         return res.json(new ApiError(404, "User not Exit"));
+    }
+    const OTP_User = await OtpModel.findOne({ email });
+    if (OTP != OTP_User?.OTP) {
+        return res.json(new ApiError(500, "OTP are not valid"));
     }
     const EncryptPass = await bcrypt.hash(NewPassword, 10);
     const NewUser = await user.findByIdAndUpdate(UserFind._id, { $set: { password: EncryptPass } }, { new: true });
     if (!NewUser) {
         return res.json(new ApiError(500, "Password changed Error"));
     }
+    await OtpModel.deleteOne({ email });
     return res.status(200).json(
         new ApiResponse(200, true, "Password changed",)
     )
@@ -276,4 +299,31 @@ const UserInfo = asyncHandler(async (req, res) => {
 
 });
 
-export { GoogleAuth, UserInfo, registerUser, UserImage, DeleteUser, login, logout, GetTokens, ForgetPassword }
+
+const SendAndSaveOTP = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const { OTP } = await sendOTP(email);
+    if (!OTP) {
+        return res.status(500).json(
+            new ApiError(500, "Please try again !!", false)
+        )
+    }
+    const generatedOTP = OTP;
+    const isOTPExit = await OtpModel.findOne({ email });
+    if (isOTPExit) {
+        await OtpModel.findOneAndUpdate({ "_id": isOTPExit._id }, { $set: { "OTP": generatedOTP } }, { new: true })
+    } else {
+        await OtpModel.create({ email, OTP: generatedOTP });
+    }
+    const NewOtpDoc = await OtpModel.findOne({ email });
+    if (NewOtpDoc) {
+        return res.status(200).json(
+            new ApiResponse(200, true, 'OTP send Successfully')
+        )
+    }
+    return res.status(500).json(
+        new ApiError(500, "OTP not send !!")
+    )
+})
+
+export { SendAndSaveOTP, GoogleAuth, UserInfo, registerUser, UserImage, DeleteUser, login, logout, GetTokens, ForgetPassword }
