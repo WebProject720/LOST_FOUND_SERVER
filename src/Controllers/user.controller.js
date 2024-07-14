@@ -131,6 +131,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     //User Response
     // return res.status(200).json(new ApiResponse(200, CreatedUser, "User Created"));
+    const { AccessToken, RefreshToken } = await GetTokens(CreatedUser._id);
+
     return res
         .status(200)
         .cookie("AccessToken", AccessToken, Option)
