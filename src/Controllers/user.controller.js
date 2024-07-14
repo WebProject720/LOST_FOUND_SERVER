@@ -11,7 +11,7 @@ import { OtpModel } from "../Models/user.OTP.js";
 
 const Option = {
     HttpOnly: true,
-    secure: false,// Automatic insert Cookies into header by API testers
+    secure: true,// Automatic insert Cookies into header by API testers
     maxAge: 3600000,
     sameSite: 'None'
 }

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import 'dotenv/config'
 const app = express();
 
 import path from 'path';
@@ -16,13 +17,13 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"));
 app.use(cookieParser());
 
-
-app.use(cors({
-    origin: ['http://localhost:5173'],
+const corsOption = {
+    origin: process.env.WHITELIST_DOMAIN,
     credentials: true,
     optionsSuccessStatus: 200,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
-}));
+}
+app.use(cors(corsOption));
 
 import userRouter from './Routes/users.routes.js';
 app.use("/api/v1/users", userRouter);
