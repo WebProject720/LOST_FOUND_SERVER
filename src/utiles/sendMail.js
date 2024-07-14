@@ -1,5 +1,4 @@
 import nodemailer from 'nodemailer';
-import { user } from '../Models/user.model.js';
 import 'dotenv/config'
 
 
@@ -31,13 +30,5 @@ const sendOTP = async (email) => {
     return false;
 }
 
-const UpdateUserOTP = async (_id, OTP) => {
-    user.findOneAndUpdate({ _id }, { $set: { "OTP": OTP } }, { returnDocument: 'after' }).then((response) => {
-        console.log(response);
-        return response;
-    }).catch((error) => {
-        console.log("ERROR : ", error);
-    })
-    return false;
-}
-export { sendOTP, UpdateUserOTP };
+
+export { sendOTP };

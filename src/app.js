@@ -16,30 +16,17 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"));
 app.use(cookieParser());
 
-const corsOptions = {
-    origin: '*', // Specify the allowed origin
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed methods
-    allowedHeaders: 'Content-Type,Authorization', // Allowed headers
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-    optionsSuccessStatus: 204 // Response status for successful OPTIONS requests
-};
-const whiteList = ['http://localhost:5173'];
-const CorsOption = {
-    origin: (origin, callback) => {
-        if (whiteList.indexOf(origin) != -1) {
-            callback(null, true)
-        } else {
-            throw new ApiError(404, "URL not allowed",)
-        }
-    },
-    credentials:true
-}
-app.use(cors(corsOptions));
+
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
+}));
 
 import userRouter from './Routes/users.routes.js';
 app.use("/api/v1/users", userRouter);
 import MailsRoute from './Routes/mails.routes.js';
-import { ApiError } from './utiles/ApiError.js';
 app.use('/api/v1/mails', MailsRoute);
 
 app.get("*", (req, res) => {

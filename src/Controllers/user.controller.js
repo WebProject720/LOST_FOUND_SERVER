@@ -4,16 +4,16 @@ import { ApiResponse } from "../utiles/ApiResponse.js";
 import { user } from "../Models/user.model.js";
 import { UploadFile } from "../utiles/cloudnary.js"
 import { mails } from "../Models/mail.model.js";
-import { sendOTP, UpdateUserOTP } from "../utiles/sendMail.js";
+import { sendOTP } from "../utiles/sendMail.js";
 import bcrypt from "bcrypt";
 import { OtpModel } from "../Models/user.OTP.js";
 
 
 const Option = {
     HttpOnly: true,
-    secure: true,// Automatic insert Cookies into header by API testers
+    secure: false,// Automatic insert Cookies into header by API testers
     maxAge: 3600000,
-    // sameSite: 'None'
+    sameSite: 'None'
 }
 
 
@@ -115,7 +115,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const OtpDoc = await OtpModel.findOne({ email });
     if ((OTP) != OtpDoc?.OTP) {
-        return res.status(404).json(
+        return res.json(
             new ApiError(400, "OTP are invalid !!")
         )
     }
@@ -123,14 +123,21 @@ const registerUser = asyncHandler(async (req, res) => {
         email, password, profileImage: picture, name, username: name, isEmailVerified: true
     })
     const CreatedUser = await (user.findById(NewUser._id)).select("email _id");
-    await OtpDoc.deleteOne({email});
+    await OtpDoc.deleteOne({ email });
     if (!CreatedUser) {
         return res.json(new ApiError(500, "Please try again"));
     }
 
 
     //User Response
-    return res.status(200).json(new ApiResponse(200, CreatedUser, "User Created"));
+    // return res.status(200).json(new ApiResponse(200, CreatedUser, "User Created"));
+    return res
+        .status(200)
+        .cookie("AccessToken", AccessToken, Option)
+        .cookie("RefreshToken", RefreshToken, Option)
+        .json(
+            new ApiResponse(200, { "user": CreatedUser }, "User Created Successfully")
+        )
 })
 
 const UserImage = asyncHandler(async (req, res) => {
@@ -262,7 +269,7 @@ const logout = asyncHandler(async (req, res) => {
 
 const ForgetPassword = asyncHandler(async (req, res) => {
     const { OTP, email, NewPassword } = req.body;
-    if (!email && !OTP && !NewPassword) {
+    if (!email || !OTP || !NewPassword) {
         return res.json(new ApiError(404, "OTP NewPassword email are required"));
     }
     const UserFind = await user.findOne({ 'email': email });
@@ -270,7 +277,7 @@ const ForgetPassword = asyncHandler(async (req, res) => {
         return res.json(new ApiError(404, "User not Exit"));
     }
     const OTP_User = await OtpModel.findOne({ email });
-    if (OTP != OTP_User?.OTP) {
+    if ((OTP) != (OTP_User?.OTP)) {
         return res.json(new ApiError(500, "OTP are not valid"));
     }
     const EncryptPass = await bcrypt.hash(NewPassword, 10);
@@ -302,12 +309,24 @@ const UserInfo = asyncHandler(async (req, res) => {
 
 const SendAndSaveOTP = asyncHandler(async (req, res) => {
     const { email } = req.body;
+    const { isNew } = req.body || true;
+    if (!isNew) {
+        const FindUser = await user.findOne({ email });
+        if (!FindUser) {
+            return res.json(
+                new ApiError(
+                    404, "User Not Found", false
+                )
+            )
+        }
+    }
     const { OTP } = await sendOTP(email);
     if (!OTP) {
         return res.status(500).json(
             new ApiError(500, "Please try again !!", false)
         )
     }
+
     const generatedOTP = OTP;
     const isOTPExit = await OtpModel.findOne({ email });
     if (isOTPExit) {
