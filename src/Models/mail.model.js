@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { collection } from '../constants.js';
 const object = {
     body: {
-        type: Object,
+        type: String,
         required: false,
         unique: false
     },

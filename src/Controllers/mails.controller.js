@@ -5,9 +5,14 @@ import { asyncHandler } from "../utiles/asyncHandler.js";
 import { UploadFile, DeleteImage } from "../utiles/cloudnary.js";
 import { ApiError } from "../utiles/ApiError.js";
 import { user } from "../Models/user.model.js";
+import DOMPurify from "dompurify";
+import { JSDOM } from 'jsdom'
 
 const WriteMail = asyncHandler(async (req, res) => {
-    const { subject, body, type } = req.body;
+    const window = new JSDOM('').window;
+    const purify = DOMPurify(window);
+    const { subject, type } = req.body;
+    const body = purify.sanitize(req.body.body);
     if (type == "") {
         return res.json(new ApiError(500, "Mail Type is required"));
     }
@@ -198,12 +203,17 @@ const AllMails = asyncHandler(async (req, res) => {
                 }
             },
             {
+                $set: {
+                    owner: { $arrayElemAt: ["$owner", 0] }
+                }
+            },
+            {
                 $unset: ["owner.password", "owner.refreshToken"]
             }
         ]);
     } else {
         if (countStart == "") countStart = 0;
-        if (countEnd == "") countEnd = 20;
+        if (countEnd == "") countEnd = 10;
         response = await mails.aggregate([
             {
                 $sort: {
@@ -216,12 +226,18 @@ const AllMails = asyncHandler(async (req, res) => {
             {
                 $limit: countEnd// No of docs to be need 
             },
+
             {
                 $lookup: {
                     from: "users",
                     localField: "owner",
                     foreignField: "_id",
                     as: "owner"
+                }
+            },
+            {
+                $set: {
+                    owner: { $arrayElemAt: ["$owner", 0] }
                 }
             },
             {
@@ -233,7 +249,7 @@ const AllMails = asyncHandler(async (req, res) => {
         { $count: "length" }
     ])
     return res.status(200).json(
-        new ApiResponse(200, response, { length: CollectionLength.length, from: to, to: from, countStart: countStart, countEnd: countEnd })
+        new ApiResponse(200, response, { length: CollectionLength[0].length, from: to, to: from, countStart: countStart, countEnd: countEnd })
     )
 });
 
