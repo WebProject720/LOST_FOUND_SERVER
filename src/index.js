@@ -6,7 +6,7 @@ import { DB_connect } from './DB/DB_connect.js';
 
 // import app 
 import app from './app.js';
-const PORT = process.env.SERVER_PORT || 5000;
+const PORT = process.env.SERVER_PORT || 5001;
 
 DB_connect().then(() => {
     //Start App

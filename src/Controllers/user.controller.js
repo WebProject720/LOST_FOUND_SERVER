@@ -53,6 +53,11 @@ const getUser = async (email) => {
                             }
                         },
                         {
+                            $set: {
+                                owner: { $arrayElemAt: ["$owner", 0] }
+                            }
+                        },
+                        {
                             $sort: {
                                 createdAt: -1
                             }
@@ -148,7 +153,7 @@ const UserImage = asyncHandler(async (req, res) => {
     }
     const profilePath = (req.files?.profileImage[0]?.path) || req?.file?.path;
     if (!profilePath)
-        return res.json(new ApiError(400, "Profile File Required"));
+        return res.json(new ApiError(400, "Profile Image Required"));
 
     const UploadImage = await UploadFile(profilePath);
     //Required : req.user._id
@@ -156,10 +161,12 @@ const UserImage = asyncHandler(async (req, res) => {
     if (!UploadImgObj) {
         return res.json(new ApiError(404, "User not found"));
     }
-    const UpdatedUser = await user.findById(UploadImgObj?._id).select("-_id -password");
-    return res.status(200).json(
-        new ApiResponse(200, UpdatedUser, "File Uploaded Successfully")
-    )
+    const UpdatedUser = await getUser(UploadImgObj?.email);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, UpdatedUser, "User Profile Image uploaded")
+        )
 })
 
 const DeleteUser = asyncHandler(async (req, res) => {

@@ -41,6 +41,15 @@ const object = {
         },
         createdAt: {
             type: Date
+        },
+        profileImage:{
+            type:String
+        },
+        username:{
+            type:String
+        },
+        name:{
+            type:String
         }
     }]
 }
