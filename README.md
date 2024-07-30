@@ -6,7 +6,7 @@ Welcome to the LOST_FOUND_SERVER repository. This is the backend server for the 
 
 This project is designed to create a lost and found system commonly used by organizations. Users can report lost items by writing messages, and those who find items can post messages. The system facilitates communication between the person who lost the item and the person who found it. Users can log in to the site to manage their messages and replies.
 
-- **Frontend Repository:** [LOST_FOUND_FRONTEND](https://github.com/WebProject720/LOST_FOUND_FRONTEND)
+- **Frontend Repository:** [LOST_FOUND_FRONTEND](https://github.com/WebProject720/LOST_FOUND_REACTJS)
 
 ### Table of Contents
 
@@ -118,4 +118,4 @@ We welcome contributions! Please follow these steps to contribute:
 
 ### License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/WebProject720) file for more details.
