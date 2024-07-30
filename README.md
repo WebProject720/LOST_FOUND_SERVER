@@ -1,6 +1,12 @@
 ## LOST_FOUND_SERVER
 
-Welcome to the LOST_FOUND_SERVER repository. This is the backend server for the Lost & Found web application, built using Node.js and Express.
+Welcome to the LOST_FOUND_SERVER repository. This is the backend server for the Lost & Found web application, built using Node.js and Express with a MongoDB database. This project is part of the MERN stack (MongoDB, Express, React, Node.js) and serves as the backend for the application.
+
+### Project Overview
+
+This project is designed to create a lost and found system commonly used by organizations. Users can report lost items by writing messages, and those who find items can post messages. The system facilitates communication between the person who lost the item and the person who found it. Users can log in to the site to manage their messages and replies.
+
+- **Frontend Repository:** [LOST_FOUND_FRONTEND](https://github.com/WebProject720/LOST_FOUND_FRONTEND)
 
 ### Table of Contents
 
@@ -65,12 +71,12 @@ Here are some of the main API endpoints provided by this server:
 - `POST /api/login` - Authenticate user
 - `POST /api/register` - Register a new user
 - `POST /api/logout` - Logout user
-- `POST /api/ForgotPassword` - Handle password reset
-- `GET /api/profileImage` - Upload User ProfileImage
-- `POST /api/UserInfo` - Get logged User Info
-- `GET /api/SendAndSaveOTP` - Send OTP on a email
-- `PUT /api/ReplyForMail` - Write a reply for mail
-- `DELETE /api/allmails` - get All mail or data from DB
+- `POST /api/forgot-password` - Handle password reset
+- `GET /api/profileImage` - Upload User Profile Image
+- `POST /api/user-info` - Get logged user info
+- `GET /api/send-and-save-otp` - Send OTP to email
+- `PUT /api/reply-for-mail` - Write a reply for mail
+- `DELETE /api/all-mails` - Delete all mails or data from DB
 
 ### Dev Dependencies
 
@@ -112,4 +118,4 @@ We welcome contributions! Please follow these steps to contribute:
 
 ### License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/WebProject720?tab=repositories) file for more details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
