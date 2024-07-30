@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 08cc730c7ebdbb3604223a8f4b72f6c0270e563d
 ## LOST_FOUND_SERVER
 
 Welcome to the LOST_FOUND_SERVER repository. This is the backend server for the Lost & Found web application, built using Node.js and Express.
@@ -112,4 +117,12 @@ We welcome contributions! Please follow these steps to contribute:
 
 ### License
 
+<<<<<<< HEAD
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+=======
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/WebProject720?tab=repositories) file for more details.
+
+---
+
+Feel free to let me know if you need any more details or changes!
+>>>>>>> 08cc730c7ebdbb3604223a8f4b72f6c0270e563d
