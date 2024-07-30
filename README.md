@@ -65,12 +65,12 @@ Here are some of the main API endpoints provided by this server:
 - `POST /api/login` - Authenticate user
 - `POST /api/register` - Register a new user
 - `POST /api/logout` - Logout user
-- `POST /api/forgot-password` - Handle password reset
-- `GET /api/items` - Get a list of all lost and found items
-- `POST /api/items` - Add a new item to the lost and found list
-- `GET /api/items/:id` - Get details of a specific item
-- `PUT /api/items/:id` - Update details of a specific item
-- `DELETE /api/items/:id` - Remove an item from the list
+- `POST /api/ForgotPassword` - Handle password reset
+- `GET /api/profileImage` - Upload User ProfileImage
+- `POST /api/UserInfo` - Get logged User Info
+- `GET /api/SendAndSaveOTP` - Send OTP on a email
+- `PUT /api/ReplyForMail` - Write a reply for mail
+- `DELETE /api/allmails` - get All mail or data from DB
 
 ### Dev Dependencies
 
@@ -112,4 +112,4 @@ We welcome contributions! Please follow these steps to contribute:
 
 ### License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/WebProject720?tab=repositories) file for more details.
